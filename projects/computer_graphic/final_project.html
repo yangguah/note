@@ -1,0 +1,168 @@
+﻿<!DOCTYPE html>
+<meta charset="UTF-8">
+<html>
+<head>
+<title>final project</title>
+<style>
+    body {
+        background-color: #EEEEEE;
+    }
+    label {
+        white-space: pre;
+    }
+</style>
+
+<!-- vertex shader -->
+<script type="x-shader/x-vertex" id="vshader-source">
+    attribute vec3 a_coords;
+    attribute vec3 a_normal;
+
+    uniform mat4 modelview;
+    uniform mat4 projection;
+
+    varying vec3 vertex_coords;
+    varying vec3 vertex_normal;
+
+
+    uniform mat3 normalMatrix;
+    uniform vec4 lightPosition;
+    uniform vec4 diffuseColor;
+    uniform vec3 specularColor;
+    uniform float specularExponent;
+    void main() {
+        vec4 coords = vec4(a_coords,1.0);
+        vec4 eyeCoords = modelview* coords;
+        gl_Position = projection * eyeCoords;
+        vertex_coords=a_coords;
+        vertex_normal=a_normal;
+
+       
+    }
+</script>
+
+<!-- fragment shader -->
+<script type="x-shader/x-fragment" id="fshader-source">
+    precision highp float;
+    uniform mat4 modelview;
+    uniform mat4 projection;
+
+    varying vec3 vertex_coords;
+    varying vec3 vertex_normal;
+
+    uniform mat3 normalMatrix;
+    uniform vec4 lightPosition;
+    uniform vec4 diffuseColor;
+    uniform vec3 specularColor;
+    uniform float specularExponent;
+    uniform int is_sun;
+    uniform vec4 carpos1;
+    uniform vec4 carpos2;
+    uniform vec4 cardir;
+
+
+
+    void main() {
+    vec4 coords = vec4(vertex_coords,1.0);
+    vec4 eyeCoords = modelview* coords;
+    vec3 color;
+    vec3 N, L, R, V;  // vectors for lighting equation
+    vec3 dir=normalize(cardir.xyz-carpos1.xyz);
+    N = normalize( normalMatrix*vertex_normal );
+    if ( lightPosition.w == 0.0 ) {
+    L = normalize( lightPosition.xyz );
+    }
+    else {
+    L = normalize( lightPosition.xyz/lightPosition.w - eyeCoords.xyz );
+    }
+    R = -reflect(L,N);
+    V = normalize( -eyeCoords.xyz);     // (Assumes a perspective projection.)
+    if ( dot(L,N) <= 0.0 ) {
+    color = 0.01*diffuseColor.rgb;
+    }
+    else {
+    color = 0.01*diffuseColor.rgb+0.8*dot(L,N) * diffuseColor.rgb;  // 0.8 is diffuse intensity of light
+    if (dot(R,V) > 0.0) {
+    color += 0.4*pow(dot(R,V),specularExponent) * specularColor; // 0.4 is specular intensity of light
+    }
+    }
+
+    if(is_sun!=1)
+    {
+    if ( carpos1.w == 0.0 ) {
+    L = normalize( carpos1.xyz );
+    }
+    else {
+    L = normalize( carpos1.xyz/carpos1.w - eyeCoords.xyz );
+    }
+    R = -reflect(L,N);
+    V = normalize( -eyeCoords.xyz);     // (Assumes a perspective projection.)
+    if(dot(L,-dir)>=0.9)
+    {
+    if ( dot(L,N) <= 0.0 ) {
+    color += 0.01*diffuseColor.rgb;
+    }
+    else {
+    color += 0.01*diffuseColor.rgb+0.8*dot(L,N) * diffuseColor.rgb;  // 0.8 is diffuse intensity of light
+    if (dot(R,V) > 0.0) {
+    color += 0.4*pow(dot(R,V),specularExponent) * specularColor; // 0.4 is specular intensity of light
+    }
+    }
+    }
+
+    if ( carpos2.w == 0.0 ) {
+    L = normalize( carpos2.xyz );
+    }
+    else {
+    L = normalize( carpos2.xyz/carpos2.w - eyeCoords.xyz );
+    }
+    R = -reflect(L,N);
+    V = normalize( -eyeCoords.xyz);     // (Assumes a perspective projection.)
+    if(dot(L,-dir)>=0.9)
+    {
+    if ( dot(L,N) <= 0.0 ) {
+    color += 0.01*diffuseColor.rgb;
+    }
+    else {
+    color += 0.01*diffuseColor.rgb+0.8*dot(L,N) * diffuseColor.rgb;  // 0.8 is diffuse intensity of light
+    if (dot(R,V) > 0.0) {
+    color += 0.4*pow(dot(R,V),specularExponent) * specularColor; // 0.4 is specular intensity of light
+    }
+    }
+    }
+    }
+
+
+
+
+
+
+
+    gl_FragColor  = vec4(color, diffuseColor.a);
+    if(diffuseColor.x==1.0 && diffuseColor.y==1.0 && diffuseColor.z==0.0)
+    gl_FragColor  = diffuseColor;
+    }
+
+</script>
+
+
+<script src="gl-matrix-min.js"></script>
+<script type="text/javascript" src="webgl-utils.js"></script>
+<script src="trackball-rotator.js"></script>
+<script src="models.js"></script>
+<script src = "render.js"></script>
+</head>
+
+<body onload="init()">
+Name:Yangguang He <br/>
+Student ID:50947171 <br/>
+
+<label><input type="checkbox" id="animation"><b>Animation</b></label>
+<!--<label><input type="checkbox" id="my_gl"><b>Use_My_gl</b></label> -->
+<div id="canvas-holder">
+   <canvas width=800 height=800 id="myGLCanvas"</canvas>
+</div>
+
+</body>
+
+</html>
+
